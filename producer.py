@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Simple Kafka producer for sending simulated split times of competitors
 # Data format is from an time taking application I have deveoped earlier
 # and consists of following tab sparated values:
@@ -11,9 +13,9 @@
 # e.g.
 # 42	1534582420	Swim	1	11:53:40	John	2
 
-from kafka import KafkaProducer
-import config
 import time
+
+import mykafka
 
 class TimeSender:
     def __init__(self, device_id):
@@ -21,13 +23,7 @@ class TimeSender:
         self.count = 0
         self.sport_number = 1
         self.sport_name = 'Swim'
-        self.producer = KafkaProducer(
-            bootstrap_servers=config.KAFKA_SERVICE_URL,
-            security_protocol="SSL",
-            ssl_cafile="certs/ca.pem",
-            ssl_certfile="certs/service.cert",
-            ssl_keyfile="certs/service.key",
-        )
+        self.queue = mykafka.Queue()
 
     def get_next_count(self):
         self.count += 1
@@ -48,10 +44,10 @@ class TimeSender:
                 str(count),
                 )
         message = "\t".join(message_parts)
-        self.producer.send("timer-topic", message.encode("utf-8"))
+        self.queue.send(message)
 
     def flush(self):
-        self.producer.flush()
+        self.queue.flush()
 
 
 def simulate():
