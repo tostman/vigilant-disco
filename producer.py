@@ -23,7 +23,7 @@ class TimeSender:
         self.count = 0
         self.sport_number = 1
         self.sport_name = 'Swim'
-        self.queue = mykafka.Queue()
+        self.producer = mykafka.Producer()
 
     def get_next_count(self):
         self.count += 1
@@ -44,7 +44,7 @@ class TimeSender:
                 str(count),
                 )
         message = "\t".join(message_parts)
-        self.queue.send(message)
+        self.producer.send(message)
 
     def flush(self):
         self.queue.flush()

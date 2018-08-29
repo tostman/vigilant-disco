@@ -1,8 +1,10 @@
-from kafka import KafkaConsumer
+#!/usr/bin/env python3
+
 from psycopg2.extras import RealDictCursor
 import psycopg2
 
 import config
+import mykafka
 
 class Database:
     def __init__(self):
@@ -35,20 +37,11 @@ class Database:
 class Consumer:
     def __init__(self, database):
         self.database = database
-        self.consumer = KafkaConsumer(
-            "timer-topic",
-            bootstrap_servers=config.KAFKA_SERVICE_URL,
-            client_id="demo-client-1",
-            group_id="demo-group",
-            security_protocol="SSL",
-            ssl_cafile="certs/ca.pem",
-            ssl_certfile="certs/service.cert",
-            ssl_keyfile="certs/service.key",
-        )
+        self.consumer = mykafka.Consumer()
 
     def poll(self):
         try:
-            for msg in self.consumer:
+            for msg in self.consumer.get_consumer():
                 line = msg.value.decode('utf-8')
                 data = (line,) + tuple(str(line).split('\t'))
                 print('DATA:', len(data), data)
